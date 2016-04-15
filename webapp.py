@@ -27,6 +27,26 @@ from urllib2 import quote, unquote
 def beuDate(rawTime):
     return datetime.fromtimestamp(mktime(rawTime))
 
+class CommonHandler(RequestHandler):
+    def get_current_user(self):
+        # placeholder: Пользователь всегда в системе.
+        return 31337
+
+
+class ManageFeeds(CommonHandler):
+    @authenticated
+    def get(self):
+        feeds = []
+        # sql = select all feed where user = user_id (current_user)
+        # feeds = self.db.query(sql)
+        
+        self.render('managefeeds.html', feeds = feeds)
+    
+    @authenticated
+    def post(self):
+        action = self.get_argument('action', None)
+        
+
 class FastFeed(RequestHandler):
     def get(self):
         u = 'http://artgorbunov.ru/news/rss/' # or u = rawdata
@@ -67,6 +87,8 @@ if __name__ == "__main__":
     define("templates_path", default=TEMPLATE_PATH)
     define("static_path", default=STATIC_PATH)
     
+    define('port', type=int, default=11008)
+    
     # define("db_username", type=str, default="123")
     # define("db_pass", type=str, default="123")
     
@@ -96,9 +118,9 @@ if __name__ == "__main__":
     )
     
     http_server = HTTPServer(Application(urls, **settings), xheaders=True)
-    http_server.listen(11008)
+    http_server.listen(options.port)
     
-    debug('started http://localhost:11008/')
+    debug('started http://localhost:%s/' % options.port)
     
     autoreload.start()
     IOLoop.instance().start()
