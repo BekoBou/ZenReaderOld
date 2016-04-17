@@ -9,6 +9,9 @@ import os
 from sys import argv
 from uuid import uuid4
 # from pymysql import connect
+
+from torndb import Connection
+
 from logging import debug, info, warning, error, exception
 
 from tornado.httpserver import HTTPServer
@@ -31,6 +34,14 @@ class CommonHandler(RequestHandler):
     def get_current_user(self):
         # placeholder: Пользователь всегда в системе.
         return 31337
+    
+    @property
+    def db(self):
+        if not hasattr(self, '_db') or not self._db:
+            # class torndb.Connection(host, database, user=None, password=None, max_idle_time=25200, connect_timeout=0, time_zone='+0:00', charset='utf8', sql_mode='TRADITIONAL', **kwargs)
+            self._db = Connection('127.0.0.1', 'zenreader', user='root', password='password')
+            
+        return self._db
 
 
 class ManageFeeds(CommonHandler):
@@ -73,9 +84,57 @@ class FastFeed(RequestHandler):
         #     print dt.strftime('%Y %m %d') # Unicode String
         #     print item.link
             
-class Home(RequestHandler):
+class Home(CommonHandler):
     def get(self):
+        debug(self.db.query('SELECT now()'))
         self.render('main.html')
+        
+        
+# http://torndb.readthedocs.org/en/latest/
+        
+# db = torndb.Connection("localhost", "mydatabase")
+# for article in db.query("SELECT * FROM articles"):
+#     print article.title
+
+class UserSettings(CommonHandler):
+    def get(self):
+        sql = 'SELECT * FROM feeds WHERE user_id = %s'
+        
+        feeds = self.db.query(sql, self.current_user)
+        debug(feeds)
+        debug(type(feeds))
+        self.render('settings.html', feeds = feeds, quote = quote)
+    
+    def post(self):
+        action = self.get_argument('action', None)
+        debug(action)
+        if action != 'add' and action != 'delete':
+            self.redirect('/settings/')
+            return
+        
+        if action == 'add':
+            # проверить, что url == rss
+            # добавить в БД
+            url = self.get_argument('url', None)
+            feed = feedparser.parse(url)
+            title = feed.feed.title
+            
+            check_sql = 'SELECT id from feeds where user_id = %s and url = %s limit 1;'
+            duplicates = self.db.query(check_sql, self.current_user, url)
+            
+            if duplicates:
+                self.redirect('/settings/')
+                return
+            
+            sql = 'INSERT INTO feeds (user_id, url, title) VALUES (%s, %s, %s)'
+            self.db.execute(sql, self.current_user, url, title)
+        elif action == 'delete':
+            # проверить существование и удалить (просто удалить)
+            id = self.get_argument('id', None)
+            sql = 'DELETE from feeds WHERE user_id = %s and id = %s'
+            self.db.execute(sql, self.current_user, id)
+        self.redirect('/settings/')
+        return
 
 
 if __name__ == "__main__":
@@ -89,8 +148,8 @@ if __name__ == "__main__":
     
     define('port', type=int, default=11008)
     
-    # define("db_username", type=str, default="123")
-    # define("db_pass", type=str, default="123")
+    define("db_username", type=str, default="123")
+    define("db_pass", type=str, default="123")
     
     if len(argv) > 1 and os.path.exists(argv[1]):
         parse_config_file(argv[1])
@@ -104,6 +163,7 @@ if __name__ == "__main__":
     urls = [
         ('/', Home),
         (r'/live/', FastFeed),
+        (r'/settings/', UserSettings),
         (r'/static/(.*)', StaticFileHandler, dict(path=options.static_path))
     ]
     

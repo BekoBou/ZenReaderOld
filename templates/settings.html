@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>ZenReader:user settings</title>
+        
+        <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,700,300&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+    </head>
+    <body>
+        <div class="header1">My RSS Feeds</div>
+        {% if feeds %}
+        
+        <div class"feeds">
+            {% for i in feeds %}
+            <div class="feed">
+                <p class="feed_cap">{{ i['title'] }}</p>
+                <a class="feed_subt" href="{{ i['url'] }}">{{ i['url'] }}</a> <a href="/live/?url={{ quote(i['url']) }}">Просмотреть</a>
+                <form class="" action="" method="post">
+                    <input type="hidden" name="id" value="{{ i['id'] }}">
+                    <input type="submit" name="name" value="Удалить">
+                    
+                    <input type="hidden" name="action" value="delete">
+                </form>
+                {# удалить #}
+            </div>
+            {% end %}
+            
+        </div>
+            <div class="">
+                Добавить новую ленту
+                <form class="" action="" method="post">
+                    <input type="text" name="url" value="">
+                    <input type="submit" name="name" value="Добавить">
+                    
+                    <input type="hidden" name="action" value="add">
+                </form>
+                
+            </div>
+        {% else %}
+            <p>
+                nothing
+            </p>
+            
+            <form class="" action="" method="post">
+                <input type="text" name="url" value="">
+                <input type="submit" name="name" value="Добавить">
+                
+                <input type="hidden" name="action" value="add">
+            </form>
+            
+        {% end %}
+        
+        <style media="screen">
+        body {
+            font-family: 'Roboto', sans-serif;
+            padding-top: 5%;
+            
+            display: flex;
+            flex-flow: row wrap;
+            
+            justify-content: flex-start;  /*выравнивание по главной оси*/
+            align-items: flex-start; /*выравнивание по поперечной оси*/
+            
+            align-content: center;
+        }
+        .header1 {
+            font-family: 'Roboto', sans-serif;
+            display: block;
+            font-weight: 100;
+            font-size: 50px;
+            background-color: #eaeaea;
+            width: 100%;
+            
+            padding-bottom: 20px;
+        }
+        .feeds {
+            display: block;
+            width: 100%;
+        }
+        .feed {
+            display: block;
+            width: 100%;
+            border-bottom: 1px solid #adadad;
+            padding-bottom: 15px;
+        }
+        .feed_cap {
+            font-size: 28px;
+            font-weight: 100;
+            width: 100%;
+            color: #404040;
+            margin-bottom: 0px;
+        }
+        .feed_subt {
+            color: #808080;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 0px;
+        }
+        </style>
+    </body>
+</html>
