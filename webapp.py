@@ -7,7 +7,7 @@ from sys import argv
 from uuid import uuid4
 # from pymysql import connect
 
-from torndb import Connection
+# from torndb import Connection
 
 from logging import debug, info, warning, error, exception
 
@@ -23,7 +23,8 @@ import feedparser
 from time import mktime
 from datetime import datetime, timedelta
 
-from urllib2 import quote, unquote
+# from urllib2 import quote, unquote
+from urllib.parse import quote, unquote
 
 
 def beuDate(rawTime):
@@ -59,9 +60,9 @@ class CommonHandler(RequestHandler):
             # class torndb.Connection(host, database, user=None, password=None,
             # max_idle_time=25200, connect_timeout=0, time_zone='+0:00',
             # charset='utf8', sql_mode='TRADITIONAL', **kwargs)
-            self._db = Connection('127.0.0.1', 'zenreader', user='root', password='password')
-
-        return self._db
+            # self._db = Connection('127.0.0.1', 'zenreader', user='root', password='password')
+            pass
+        # return self._db
 
 
 class FastFeed(RequestHandler):
@@ -111,7 +112,7 @@ class ManageFeeds(CommonHandler):
     def get(self):
         sql = 'SELECT * FROM feeds WHERE user_id = %s'
 
-        feeds = self.db.query(sql, self.current_user)
+        # feeds = self.db.query(sql, self.current_user)
         # debug(feeds)
         # debug(type(feeds))
         self.render('settings.html', feeds=feeds, quote=quote)
@@ -132,19 +133,19 @@ class ManageFeeds(CommonHandler):
             title = feed.feed.title
 
             check_sql = 'SELECT id from feeds where user_id = %s and url = %s limit 1;'
-            duplicates = self.db.query(check_sql, self.current_user, url)
+            # duplicates = self.db.query(check_sql, self.current_user, url)
 
-            if duplicates:
-                self.redirect('/settings/')
-                return
+            # if duplicates:
+            #     self.redirect('/settings/')
+            #     return
 
             sql = 'INSERT INTO feeds (user_id, url, title) VALUES (%s, %s, %s)'
-            self.db.execute(sql, self.current_user, url, title)
+            # self.db.execute(sql, self.current_user, url, title)
         elif action == 'delete':
             # проверить существование и удалить (просто удалить)
             id = self.get_argument('id', None)
             sql = 'DELETE from feeds WHERE user_id = %s and id = %s'
-            self.db.execute(sql, self.current_user, id)
+            # self.db.execute(sql, self.current_user, id)
         self.redirect('/settings/')
         return
 
